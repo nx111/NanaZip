@@ -12,6 +12,7 @@ const unsigned kMarkerSize = 4;
 
 namespace NSignature
 {
+  const UInt32 kLocalFileHeaderSoftmgr   = 0x0403504A;
   const UInt32 kLocalFileHeader   = 0x04034B50;
   const UInt32 kDataDescriptor    = 0x08074B50;
   const UInt32 kCentralFileHeader = 0x02014B50;

@@ -388,7 +388,7 @@ API_FUNC_IsArc IsArc_Zip(const Byte *p, size_t size)
     return k_IsArc_Res_YES; // k_IsArc_Res_YES_2;
   }
 
-  if (sig != NSignature::kLocalFileHeader)
+  if (sig != NSignature::kLocalFileHeader && sig != NSignature::kLocalFileHeaderSoftmgr)
     return k_IsArc_Res_NO;
 
   if (size < kLocalHeaderSize)
@@ -568,7 +568,8 @@ HRESULT CInArchive::FindMarker(const UInt64 *searchLimit)
 
     if (   _signature != NSignature::kEcd
         && _signature != NSignature::kEcd64
-        && _signature != NSignature::kLocalFileHeader)
+        && _signature != NSignature::kLocalFileHeader
+		&& _signature != NSignature::kLocalFileHeaderSoftmgr)
       return S_FALSE;
 
     ArcInfo.MarkerPos2 = GetVirtStreamPos() - 4;
@@ -1325,7 +1326,8 @@ HRESULT CInArchive::ReadLocalItemAfterCdItem(CItemEx &item, bool &isAvail, bool 
     */
 
     CItemEx localItem;
-    if (ReadUInt32() != NSignature::kLocalFileHeader)
+	UInt32 __signatur = ReadUInt32();
+    if (__signatur != NSignature::kLocalFileHeader && __signatur != NSignature::kLocalFileHeaderSoftmgr)
       return S_FALSE;
     ReadLocalItem(localItem);
     if (!AreItemsEqual(localItem, item))
@@ -1445,6 +1447,7 @@ HRESULT CInArchive::FindDescriptor(CItemEx &item, unsigned numFiles)
       // maybe we need check only 2 bytes "PK" instead of 4 bytes, if some another type of header is possible after descriptor
       const UInt32 sig = Get32(p + descriptorSize4 - kNextSignatureSize);
       if (   sig != NSignature::kLocalFileHeader
+	      && sig != NSignature::kLocalFileHeaderSoftmgr
           && sig != NSignature::kCentralFileHeader)
         continue;
 
@@ -2007,7 +2010,7 @@ HRESULT CInArchive::ReadLocals(CObjectVector<CItemEx> &items)
     RINOK(Callback->SetTotal(NULL, IsMultiVol ? &Vols.TotalBytesSize : NULL));
   }
 
-  while (_signature == NSignature::kLocalFileHeader)
+  while (_signature == NSignature::kLocalFileHeader ||_signature == NSignature::kLocalFileHeaderSoftmgr)
   {
     CItemEx item;
 
